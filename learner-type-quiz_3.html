@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>自立した学習者タイプ診断｜5年生 国語</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&family=Noto+Serif+JP:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+/* ===== TOKEN SYSTEM ===== */
+:root {
+  --ink:    #1a2e44;
+  --paper:  #fdf9f2;
+  --cream:  #f5efe0;
+  --ruled:  #d6ccb8;
+  --blue:   #3b7dd8;
+  --green:  #3a9e6f;
+  --shadow: 0 4px 20px rgba(26,46,68,0.10);
+  --trans:  0.2s cubic-bezier(.4,0,.2,1);
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+html,body {
+  font-family:'Zen Maru Gothic',sans-serif;
+  background:var(--paper); color:var(--ink); overflow-x:hidden;
+}
+
+/* ===== SCREEN CONTROL ===== */
+/* display は JS が style.display で直接制御。CSSでは設定しない */
+.screen { display:none; min-height:100vh; }
+
+@keyframes pageFadeIn {
+  from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)}
+}
+.screen-anim { animation:pageFadeIn .35s ease both; }
+
+/* ===== START ===== */
+#screen-start {
+  /* flex は JS が display:flex で付与 */
+  flex-direction:column; align-items:center; justify-content:center;
+  padding:40px 24px 60px; text-align:center;
+  background:linear-gradient(160deg,#fdf9f2 0%,#eef4fb 100%);
+}
+.start-deco {
+  font-size:64px; line-height:1; margin-bottom:20px;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.1));
+  animation:floatBook 3s ease-in-out infinite;
+}
+@keyframes floatBook { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+.start-eyebrow {
+  display:inline-block; background:var(--blue); color:white;
+  font-size:12px; font-weight:700; letter-spacing:.12em;
+  padding:4px 16px; border-radius:99px; margin-bottom:18px;
+}
+.start-title {
+  font-family:'Noto Serif JP',serif; font-size:clamp(24px,5.5vw,38px);
+  font-weight:700; line-height:1.35; color:var(--ink); margin-bottom:12px;
+}
+.start-sub { font-size:14px; color:#5a6e80; line-height:1.8; max-width:420px; margin:0 auto 32px; }
+
+.start-meta { display:flex; justify-content:center; gap:14px; margin-bottom:36px; flex-wrap:wrap; }
+.meta-chip {
+  display:flex; align-items:center; gap:6px; background:white;
+  border:1.5px solid var(--ruled); border-radius:99px; padding:6px 16px;
+  font-size:13px; font-weight:700; color:var(--ink);
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+.btn-primary {
+  background:linear-gradient(135deg,var(--blue) 0%,#2563c0 100%);
+  color:white; font-family:'Zen Maru Gothic',sans-serif;
+  font-size:18px; font-weight:700; padding:16px 56px;
+  border-radius:99px; border:none; cursor:pointer;
+  box-shadow:0 4px 20px rgba(59,125,216,.38);
+  transition:transform var(--trans),box-shadow var(--trans); letter-spacing:.05em;
+}
+.btn-primary:hover  { transform:translateY(-2px); box-shadow:0 7px 28px rgba(59,125,216,.45); }
+.btn-primary:active { transform:translateY(0); }
+
+.type-chips { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:36px; max-width:460px; }
+.type-chip  { display:flex; align-items:center; gap:6px; padding:6px 14px; border-radius:99px; font-size:12px; font-weight:700; color:white; }
+
+/* ===== QUIZ ===== */
+#screen-quiz { background:var(--paper); }
+
+.progress-header {
+  position:sticky; top:0; z-index:10; background:white;
+  border-bottom:1.5px solid var(--ruled); padding:14px 24px;
+  display:flex; align-items:center; gap:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+.prog-label { font-size:12px; font-weight:700; color:#7a8fa0; white-space:nowrap; }
+.prog-track { flex:1; height:8px; background:var(--cream); border-radius:99px; overflow:hidden; border:1px solid var(--ruled); }
+.prog-fill  { height:100%; background:linear-gradient(90deg,var(--blue),#5b9fef); border-radius:99px; transition:width .4s cubic-bezier(.4,0,.2,1); }
+.prog-num   { font-size:13px; font-weight:700; color:var(--ink); white-space:nowrap; }
+
+.quiz-wrap { max-width:680px; margin:0 auto; padding:28px 20px 80px; }
+
+.q-card {
+  background:white; border-radius:22px; box-shadow:var(--shadow);
+  border:1.5px solid var(--ruled); overflow:hidden;
+  animation:cardSlide .3s cubic-bezier(.4,0,.2,1) both;
+}
+@keyframes cardSlide { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+
+.q-header {
+  background:linear-gradient(135deg,var(--ink) 0%,#2a4a6a 100%);
+  padding:22px 28px;
+}
+.q-number { font-size:13px; font-weight:600; color:rgba(255,255,255,.6); letter-spacing:.1em; }
+.q-text   { font-size:clamp(16px,3.5vw,20px); font-weight:700; color:white; line-height:1.6; margin-top:6px; white-space:pre-line; }
+
+/* 複数選択ヒント */
+.q-hint {
+  padding:10px 22px 0;
+  font-size:13px; font-weight:700; color:var(--blue);
+}
+
+/* 選択肢 — チェックボックス方式 */
+.q-options { padding:14px 22px 20px; display:flex; flex-direction:column; gap:9px; }
+
+.opt-btn {
+  display:flex; align-items:center; gap:12px;
+  background:var(--cream); border:1.5px solid var(--ruled);
+  border-radius:14px; padding:15px 18px;
+  cursor:pointer; text-align:left;
+  font-family:'Zen Maru Gothic',sans-serif; font-size:15px; font-weight:500; color:var(--ink);
+  transition:all var(--trans); width:100%; line-height:1.55;
+}
+.opt-btn:hover { background:#eef4fb; border-color:var(--blue); box-shadow:0 3px 10px rgba(59,125,216,.13); }
+.opt-btn:active { transform:scale(.99); }
+
+/* チェックボックス風アイコン */
+.opt-check {
+  width:26px; height:26px; border-radius:7px; flex-shrink:0;
+  background:white; border:2px solid var(--ruled);
+  display:flex; align-items:center; justify-content:center;
+  font-size:15px; transition:all var(--trans);
+}
+/* 選択済み */
+.opt-btn.selected { background:linear-gradient(135deg,#eef4fb,#ddeafc); border-color:var(--blue); box-shadow:0 2px 10px rgba(59,125,216,.18); }
+.opt-btn.selected .opt-check { background:var(--blue); border-color:var(--blue); color:white; }
+
+/* フッター */
+.q-footer {
+  padding:0 22px 22px; display:flex;
+  justify-content:space-between; align-items:center; gap:12px;
+}
+.btn-back {
+  background:transparent; border:1.5px solid var(--ruled); border-radius:99px;
+  padding:11px 22px; font-family:'Zen Maru Gothic',sans-serif;
+  font-size:14px; font-weight:700; color:#7a8fa0; cursor:pointer; transition:all var(--trans);
+}
+.btn-back:hover { border-color:var(--ink); color:var(--ink); background:var(--cream); }
+.btn-back:disabled { opacity:.3; pointer-events:none; }
+
+.btn-next-q {
+  background:linear-gradient(135deg,var(--blue),#2563c0);
+  color:white; border:none; border-radius:99px; padding:12px 30px;
+  font-family:'Zen Maru Gothic',sans-serif; font-size:15px; font-weight:700;
+  cursor:pointer; transition:all var(--trans); letter-spacing:.04em;
+  box-shadow:0 3px 12px rgba(59,125,216,.35);
+}
+.btn-next-q:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 5px 18px rgba(59,125,216,.45); }
+.btn-next-q:disabled { background:#c8d8e8; box-shadow:none; cursor:not-allowed; opacity:.7; }
+
+/* ===== RESULT ===== */
+#screen-result { background:var(--paper); }
+.result-wrap { max-width:720px; margin:0 auto; padding:40px 20px 80px; }
+
+.result-type-hero {
+  background:white; border-radius:24px; box-shadow:var(--shadow);
+  border:2px solid var(--ruled); padding:36px 28px; text-align:center;
+  margin-bottom:20px; position:relative; overflow:hidden;
+}
+.result-hero-bar { position:absolute; top:0; left:0; right:0; height:5px; }
+.result-eyebrow {
+  display:inline-block; background:var(--cream); border:1.5px solid var(--ruled);
+  border-radius:99px; font-size:12px; font-weight:700; color:#7a8fa0;
+  padding:4px 16px; letter-spacing:.1em; margin-bottom:18px;
+}
+.result-type-icon  { font-size:52px; line-height:1; margin-bottom:10px; }
+.result-type-label { font-family:'Noto Serif JP',serif; font-size:clamp(28px,7vw,42px); font-weight:700; margin-bottom:6px; }
+.result-type-sub   { font-size:13px; color:#7a8fa0; font-weight:500; }
+
+.result-card {
+  background:white; border-radius:20px; box-shadow:var(--shadow);
+  border:1.5px solid var(--ruled); padding:26px 24px; margin-bottom:16px;
+}
+.result-card-title {
+  display:flex; align-items:center; gap:8px;
+  font-family:'Noto Serif JP',serif; font-size:16px; font-weight:700; color:var(--ink);
+  margin-bottom:14px; padding-bottom:10px; border-bottom:2px dashed var(--ruled);
+}
+.result-card-body { font-size:15px; line-height:1.85; color:#2d4050; white-space:pre-line; }
+
+/* レーダーチャート */
+.radar-section {
+  background:white; border-radius:20px; box-shadow:var(--shadow);
+  border:1.5px solid var(--ruled); padding:26px 16px 20px; margin-bottom:16px; text-align:center;
+}
+#radarCanvas { display:block; margin:0 auto; max-width:100%; }
+
+/* スコア棒グラフ */
+.score-grid { display:flex; flex-direction:column; gap:12px; }
+.score-row  { display:flex; align-items:center; gap:10px; }
+.score-type-name { font-size:13px; font-weight:700; width:100px; flex-shrink:0; }
+.score-bar-bg    { flex:1; height:12px; background:var(--cream); border-radius:99px; overflow:hidden; border:1px solid var(--ruled); }
+.score-bar-fill  { height:100%; border-radius:99px; width:0; }
+.score-val { font-family:'Noto Serif JP',serif; font-size:16px; font-weight:700; width:28px; text-align:right; flex-shrink:0; }
+
+/* tips */
+.tips-list { display:flex; flex-direction:column; gap:12px; }
+.tip-item  { display:flex; align-items:flex-start; gap:12px; background:var(--cream); border-radius:12px; padding:14px 16px; border:1px solid var(--ruled); }
+.tip-num   { width:28px; height:28px; border-radius:50%; color:white; font-size:13px; font-weight:900; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.tip-text  { font-size:14px; line-height:1.65; color:var(--ink); }
+
+/* 最後のメッセージ */
+.final-message {
+  background:linear-gradient(135deg,#f0f7ff,#e8f4fd);
+  border:1.5px solid #b8d8f8; border-radius:18px;
+  padding:24px 22px; margin-bottom:20px;
+  font-size:14px; line-height:1.85; color:#1a3a5c; text-align:center;
+}
+.final-message .fm-icon { font-size:32px; margin-bottom:12px; display:block; }
+
+/* ボタン群 */
+.result-actions { display:flex; flex-direction:column; gap:10px; margin-top:8px; }
+.btn-action {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  padding:15px; border-radius:14px; border:none; cursor:pointer;
+  font-family:'Zen Maru Gothic',sans-serif; font-size:15px; font-weight:700;
+  transition:all var(--trans); letter-spacing:.03em;
+}
+.btn-action:active { transform:scale(.98); }
+.btn-restart  { background:linear-gradient(135deg,var(--blue),#2563c0); color:white; box-shadow:0 4px 16px rgba(59,125,216,.3); }
+.btn-restart:hover  { transform:translateY(-2px); }
+.btn-copy     { background:var(--cream); color:var(--ink); border:1.5px solid var(--ruled); }
+.btn-copy:hover     { background:white; border-color:var(--ink); }
+.btn-save-img { background:linear-gradient(135deg,var(--green),#2d8057); color:white; box-shadow:0 4px 14px rgba(58,158,111,.28); }
+.btn-save-img:hover { transform:translateY(-2px); }
+
+/* トースト */
+.toast {
+  position:fixed; bottom:32px; left:50%;
+  transform:translateX(-50%) translateY(80px);
+  background:var(--ink); color:white; font-size:14px; font-weight:700;
+  padding:12px 28px; border-radius:99px; box-shadow:0 6px 24px rgba(0,0,0,.25);
+  transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s;
+  opacity:0; z-index:999; pointer-events:none;
+}
+.toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+
+@media(min-width:600px){
+  .result-actions { flex-direction:row; flex-wrap:wrap; }
+  .btn-action { flex:1; min-width:160px; }
+  .btn-restart { flex:1 1 100%; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========== START ========== -->
+<div id="screen-start" class="screen">
+  <div class="start-deco">📖</div>
+  <span class="start-eyebrow">5年生 国語 ・ 1学期のふりかえり</span>
+  <h1 class="start-title">自立した学習者<br>タイプ診断</h1>
+  <p class="start-sub">自分の学び方の<strong>得意なところ</strong>を知ろう。<br>どのタイプが優れているかではなく、<br><strong>あなたらしい学び方</strong>を見つけるための診断です。</p>
+  <div class="start-meta">
+    <div class="meta-chip">✏️ 全7問</div>
+    <div class="meta-chip">☑️ 複数選択OK</div>
+    <div class="meta-chip">📊 5タイプ診断</div>
+  </div>
+  <button class="btn-primary" onclick="startQuiz()">診断をはじめる</button>
+  <div class="type-chips">
+    <div class="type-chip" style="background:#e05a2b">🔍 探究型</div>
+    <div class="type-chip" style="background:#3b7dd8">💬 対話型</div>
+    <div class="type-chip" style="background:#d4a017">⚡ 挑戦型</div>
+    <div class="type-chip" style="background:#3a9e6f">🗓 自己調整型</div>
+    <div class="type-chip" style="background:#8b5cf6">🔎 メタ認知型</div>
+  </div>
+</div>
+
+<!-- ========== QUIZ ========== -->
+<div id="screen-quiz" class="screen">
+  <div class="progress-header">
+    <span class="prog-label">しんだんちゅう</span>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <span class="prog-num" id="prog-num">1 / 7</span>
+  </div>
+  <div class="quiz-wrap">
+    <div class="q-card" id="q-card">
+      <div class="q-header">
+        <div class="q-number" id="q-number">Q1 / 7</div>
+        <div class="q-text"   id="q-text"></div>
+      </div>
+      <div class="q-hint">☑️ あてはまるものをすべて選んで「つぎへ」を押してね</div>
+      <div class="q-options" id="q-options"></div>
+      <div class="q-footer">
+        <button class="btn-back"   id="btn-back"   onclick="prevQ()">← もどる</button>
+        <button class="btn-next-q" id="btn-next-q" onclick="nextQ()" disabled>つぎへ →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== RESULT ========== -->
+<div id="screen-result" class="screen">
+  <div class="result-wrap" id="result-capture">
+
+    <!-- ① タイプ -->
+    <div class="result-type-hero" id="result-hero">
+      <div class="result-hero-bar" id="result-hero-bar"></div>
+      <div class="result-eyebrow">あなたのタイプ</div>
+      <div class="result-type-icon"  id="result-icon"></div>
+      <div class="result-type-label" id="result-type-label"></div>
+      <div class="result-type-sub"   id="result-type-sub"></div>
+    </div>
+
+    <!-- ② 説明 -->
+    <div class="result-card">
+      <div class="result-card-title">📝 タイプのせつめい</div>
+      <div class="result-card-body" id="result-desc"></div>
+    </div>
+
+    <!-- ③ 強み -->
+    <div class="result-card">
+      <div class="result-card-title">💪 あなたの強み</div>
+      <div class="result-card-body" id="result-strength"></div>
+    </div>
+
+    <!-- ④ レーダーチャート -->
+    <div class="radar-section">
+      <div class="result-card-title" style="justify-content:center;border:none;margin-bottom:8px;">📊 5つのタイプのバランス</div>
+      <canvas id="radarCanvas" width="360" height="340"></canvas>
+    </div>
+
+    <!-- ⑤ スコア -->
+    <div class="result-card">
+      <div class="result-card-title">🏅 タイプ別とくてん</div>
+      <div class="score-grid" id="score-grid"></div>
+    </div>
+
+    <!-- ⑥ おすすめ -->
+    <div class="result-card">
+      <div class="result-card-title">☀️ 夏休みにおすすめの学び方</div>
+      <div class="tips-list" id="tips-list"></div>
+    </div>
+
+    <!-- 最後のメッセージ -->
+    <div class="final-message">
+      <span class="fm-icon">🌱</span>
+      どのタイプにもよさがあります。<br>
+      自立した学習者とは、一つのタイプになることではありません。<br>
+      自分の得意な学び方を知り、必要に応じて他の学び方も取り入れながら成長していける人です。<br><br>
+      <strong>夏休みは、自分だけの学び方を見つけるチャンスです。<br>2学期には、一歩成長した自分で学校に戻ってきましょう。</strong>
+    </div>
+
+    <!-- ⑧ ボタン -->
+    <div class="result-actions">
+      <button class="btn-action btn-restart"  onclick="restartQuiz()">🔄 もう一度診断する</button>
+      <button class="btn-action btn-copy"     onclick="copyResult()">📋 結果をコピーする</button>
+      <button class="btn-action btn-save-img" onclick="saveImage()">🖼 画像として保存する</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== DATA ===== */
+const QUESTIONS = [
+  {
+    text: '新しい単元が始まります。\nあなたはまず何をしますか？',
+    opts: [
+      {label:'A', text:'「どんなことを学ぶのかな？」と疑問を考える', type:'A'},
+      {label:'B', text:'「友達はどんなことを考えるかな」と楽しみにする', type:'B'},
+      {label:'C', text:'「よし！やってみよう！」とすぐ始める', type:'C'},
+      {label:'D', text:'「今日は何を目標にしようかな」と考える', type:'D'},
+      {label:'E', text:'「自分は何が得意で、何が苦手かな」と思い出す', type:'E'},
+    ]
+  },
+  {
+    text: '読解問題で分からない問題がありました。\nどうしますか？',
+    opts: [
+      {label:'A', text:'本文を何度も読んで問いを考える', type:'A'},
+      {label:'B', text:'友達と話しながら考える', type:'B'},
+      {label:'C', text:'とりあえず最後まで挑戦する', type:'C'},
+      {label:'D', text:'自分に合う解き方を試してみる', type:'D'},
+      {label:'E', text:'「なぜ分からないんだろう」と原因を考える', type:'E'},
+    ]
+  },
+  {
+    text: '国語で一番好きなのは？',
+    opts: [
+      {label:'A', text:'問いを考えること', type:'A'},
+      {label:'B', text:'話し合い・ディベート', type:'B'},
+      {label:'C', text:'発表や新しい活動', type:'C'},
+      {label:'D', text:'自分の目標を達成すること', type:'D'},
+      {label:'E', text:'振り返りを書いて成長を感じること', type:'E'},
+    ]
+  },
+  {
+    text: 'テストが返ってきました。\nあなたがすることは？',
+    opts: [
+      {label:'A', text:'間違えた問題の理由を考える', type:'A'},
+      {label:'B', text:'友達と答えを比べる', type:'B'},
+      {label:'C', text:'次はもっといい点を取りたいと思う', type:'C'},
+      {label:'D', text:'次回の作戦を考える', type:'D'},
+      {label:'E', text:'自分はどこでつまずいたか分析する', type:'E'},
+    ]
+  },
+  {
+    text: '夏休みに国語を勉強するとしたら？',
+    opts: [
+      {label:'A', text:'面白そうな問いを考えながら本を読む', type:'A'},
+      {label:'B', text:'家族と本の話をする', type:'B'},
+      {label:'C', text:'新しいことに挑戦する', type:'C'},
+      {label:'D', text:'自分で計画を立てて進める', type:'D'},
+      {label:'E', text:'毎回「今日はどうだったかな」と振り返る', type:'E'},
+    ]
+  },
+  {
+    text: '友達と意見が違いました。\nどうしますか？',
+    opts: [
+      {label:'A', text:'「どうしてそう考えたの？」と質問する', type:'A'},
+      {label:'B', text:'話し合ってよりよい考えを探す', type:'B'},
+      {label:'C', text:'自分の考えを伝えてみる', type:'C'},
+      {label:'D', text:'本文をもう一度読んで確かめる', type:'D'},
+      {label:'E', text:'「自分の考えは変わったかな」と振り返る', type:'E'},
+    ]
+  },
+  {
+    text: '授業が終わりました。\n一番考えることは？',
+    opts: [
+      {label:'A', text:'新しい疑問が見つかった', type:'A'},
+      {label:'B', text:'友達の考えがおもしろかった', type:'B'},
+      {label:'C', text:'次もやってみたい', type:'C'},
+      {label:'D', text:'今日の目標は達成できた', type:'D'},
+      {label:'E', text:'今日の学び方はよかったかな', type:'E'},
+    ]
+  }
+];
+
+const TYPES = {
+  A: { key:'A', name:'探究型',     icon:'🔍', label:'探究型',     sub:'問いを見つけて深く考えるのが得意',     color:'#e05a2b',
+       desc:'「なぜ？」という問いを大切にする学び方です。\n本文を何度も読んだり、疑問を考えたりすることで、学びが深まるタイプです。',
+       strength:'疑問を持ち続けることが、学びを深める大きな力になっています。\n答えを急がず、じっくり考えることができます。',
+       tips:['本を読んだら「なぜ？」を1つ書く','ニュースや身近な出来事から問いを見つける','文章を読み、「答えの根拠になる文」に線を引く'] },
+  B: { key:'B', name:'対話型',     icon:'💬', label:'対話型',     sub:'友達との話し合いで力を伸ばすのが得意', color:'#3b7dd8',
+       desc:'友達や家族との話し合いで考えが深まるタイプです。\n相手の意見を聞いて、自分の考えを広げることができます。',
+       strength:'人の話をしっかり聞いて、自分の考えに取り入れることができます。\n話し合いの場で、クラスの学びを豊かにする存在です。',
+       tips:['家族に読んだ本やニュースの内容を話す','読解問題を解いたあと、「どこにそう書いてあったか」を家族に説明する','会話の中で新しく気づいたことをメモする'] },
+  C: { key:'C', name:'挑戦型',     icon:'⚡', label:'挑戦型',     sub:'新しいことにチャレンジするのが得意',   color:'#d4a017',
+       desc:'失敗を恐れず行動できる、行動力あふれるタイプです。\n新しいことに積極的に取り組む姿勢が強みです。',
+       strength:'「やってみよう！」という気持ちが、学びのスタートを切る力になっています。\n行動してみることで、たくさんのことを学ぶことができます。',
+       tips:['普段読まないジャンルの本に挑戦する','苦手なジャンルの文章の要約を書いてみる','難しい問題にも、まず取り組んでみる'] },
+  D: { key:'D', name:'自己調整型', icon:'🗓', label:'自己調整型', sub:'目標を立てて計画的に学ぶのが得意',   color:'#3a9e6f',
+       desc:'目標を立てたり、自分に合う学び方を考えたりすることが得意なタイプです。\n計画的に学習を進めることができます。',
+       strength:'ゴールを決めて、そこに向かって着実に進む力があります。\n自分に合った学び方を見つける工夫ができます。',
+       tips:['夏休みの国語目標を決める','いつ・何を・どのくらいやるか計画を立てる','週に1回、計画を見直す'] },
+  E: { key:'E', name:'メタ認知型', icon:'🔎', label:'メタ認知型', sub:'自分の学びを客観的に見るのが得意',   color:'#8b5cf6',
+       desc:'自分の学びを外から見る力（メタ認知）が高いタイプです。\n「なぜできたのか」「なぜできなかったのか」を考えながら、学び方を改善できます。',
+       strength:'自分の学びを客観的に見つめることができます。\n振り返りを通して、着実に成長できるタイプです。',
+       tips:['読解問題を解いた後に「なぜ間違えたか」を書く','学習後に「できたこと・次に直すこと」を書く','自分に合う勉強法を試して比べる'] }
+};
+
+/* ===== STATE =====
+   answers[i] = Set で選んだ type を複数保持
+   最大スコア = 7問 × 全選択 = 7点（1問で最大1票ずつ）
+   ※ 同一問題で複数選択しても各タイプへ1票（重複なし）で集計
+*/
+let currentQ = 0;
+let answers  = [];   // 初期化は startQuiz() で
+let scores   = {};
+
+/* ===== SCREEN ===== */
+function showScreen(name) {
+  ['start','quiz','result'].forEach(n => {
+    const el = document.getElementById('screen-' + n);
+    el.style.display = 'none';
+    el.classList.remove('screen-anim');
+  });
+  const el = document.getElementById('screen-' + name);
+  el.style.display = (name === 'start') ? 'flex' : 'block';
+  // 次フレームでアニメーションクラス付与（再トリガー）
+  requestAnimationFrame(() => el.classList.add('screen-anim'));
+  window.scrollTo(0, 0);
+}
+
+/* ===== QUIZ ===== */
+function startQuiz() {
+  currentQ = 0;
+  // 各問に空の Set を用意
+  answers = QUESTIONS.map(() => new Set());
+  scores  = {A:0, B:0, C:0, D:0, E:0};
+  showScreen('quiz');
+  renderQ();
+}
+
+function renderQ() {
+  const q     = QUESTIONS[currentQ];
+  const total = QUESTIONS.length;
+  const sel   = answers[currentQ];   // 現在の問いの選択 Set
+
+  // プログレス
+  document.getElementById('prog-fill').style.width = (currentQ / total * 100) + '%';
+  document.getElementById('prog-num').textContent  = (currentQ + 1) + ' / ' + total;
+  document.getElementById('q-number').textContent  = 'Q' + (currentQ + 1) + ' / ' + total;
+  document.getElementById('q-text').textContent    = q.text;
+  document.getElementById('btn-back').disabled     = (currentQ === 0);
+
+  // つぎへボタン状態を更新
+  refreshNextBtn();
+
+  // 選択肢を描画
+  const optsEl = document.getElementById('q-options');
+  optsEl.innerHTML = '';
+  q.opts.forEach(opt => {
+    const btn = document.createElement('button');
+    const isSelected = sel.has(opt.type);
+    btn.className  = 'opt-btn' + (isSelected ? ' selected' : '');
+    btn.dataset.type = opt.type;
+    btn.innerHTML  = `<span class="opt-check">${isSelected ? '✓' : ''}</span><span>${opt.text}</span>`;
+    btn.onclick    = () => toggleOpt(opt.type, btn);
+    optsEl.appendChild(btn);
+  });
+
+  // カードアニメーション再トリガー
+  const card = document.getElementById('q-card');
+  card.style.animation = 'none';
+  requestAnimationFrame(() => { card.style.animation = ''; });
+}
+
+/* 選択をトグル */
+function toggleOpt(type, btn) {
+  const sel = answers[currentQ];
+  if (sel.has(type)) {
+    sel.delete(type);
+    btn.classList.remove('selected');
+    btn.querySelector('.opt-check').textContent = '';
+  } else {
+    sel.add(type);
+    btn.classList.add('selected');
+    btn.querySelector('.opt-check').textContent = '✓';
+  }
+  refreshNextBtn();
+}
+
+/* つぎへボタンの有効/無効と文言を更新 */
+function refreshNextBtn() {
+  const btn = document.getElementById('btn-next-q');
+  btn.disabled    = (answers[currentQ].size === 0);
+  btn.textContent = (currentQ === QUESTIONS.length - 1) ? '結果を見る 🎉' : 'つぎへ →';
+}
+
+function nextQ() {
+  if (answers[currentQ].size === 0) return;
+  if (currentQ < QUESTIONS.length - 1) {
+    currentQ++;
+    renderQ();
+  } else {
+    calcResult();
+  }
+}
+
+function prevQ() {
+  if (currentQ > 0) { currentQ--; renderQ(); }
+}
+
+/* ===== RESULT ===== */
+function calcResult() {
+  // 各問の選択タイプを集計。1問で同じタイプに複数票は入らない
+  scores = {A:0, B:0, C:0, D:0, E:0};
+  answers.forEach(sel => sel.forEach(type => { scores[type]++; }));
+
+  // 最高スコアのタイプを決定
+  let topType = 'A', topVal = -1;
+  Object.entries(scores).forEach(([k, v]) => {
+    if (v > topVal) { topVal = v; topType = k; }
+  });
+
+  renderResult(TYPES[topType]);
+}
+
+function renderResult(type) {
+  showScreen('result');
+
+  /* ① タイプ表示 */
+  document.getElementById('result-hero-bar').style.background  = type.color;
+  document.getElementById('result-icon').textContent           = type.icon;
+  document.getElementById('result-type-label').textContent     = type.label;
+  document.getElementById('result-type-label').style.color     = type.color;
+  document.getElementById('result-type-sub').textContent       = type.sub;
+
+  /* ② 説明 */
+  document.getElementById('result-desc').textContent     = type.desc;
+  /* ③ 強み */
+  document.getElementById('result-strength').textContent = type.strength;
+
+  /* ⑤ スコア棒グラフ */
+  const maxScore = QUESTIONS.length;  // 最大7
+  const sg = document.getElementById('score-grid');
+  sg.innerHTML = '';
+  Object.entries(TYPES).forEach(([k, t]) => {
+    const s   = scores[k] || 0;
+    const pct = (s / maxScore) * 100;
+    const row = document.createElement('div');
+    row.className = 'score-row';
+    row.innerHTML = `
+      <div class="score-type-name" style="color:${t.color}">${t.name}</div>
+      <div class="score-bar-bg">
+        <div class="score-bar-fill" style="background:${t.color}" data-pct="${pct}"></div>
+      </div>
+      <div class="score-val" style="color:${t.color}">${s}</div>`;
+    sg.appendChild(row);
+  });
+  // バーをアニメーション付きで伸ばす
+  setTimeout(() => {
+    sg.querySelectorAll('.score-bar-fill').forEach(el => {
+      el.style.transition = 'width .9s cubic-bezier(.4,0,.2,1)';
+      el.style.width = el.dataset.pct + '%';
+    });
+  }, 120);
+
+  /* ⑥ おすすめ */
+  const tl = document.getElementById('tips-list');
+  tl.innerHTML = '';
+  type.tips.forEach((tip, i) => {
+    tl.innerHTML += `
+      <div class="tip-item">
+        <div class="tip-num" style="background:${type.color}">${i+1}</div>
+        <div class="tip-text">${tip}</div>
+      </div>`;
+  });
+
+  /* ④ レーダーチャート（少し遅らせて描画） */
+  setTimeout(() => drawRadar(), 250);
+
+  localStorage.setItem('learner_result', JSON.stringify({type: type.key, scores}));
+}
+
+/* ===== RADAR CHART =====
+   最大値 = 全7問すべて同じタイプを選んだ場合 = 7
+   複数選択で分散することが多いので、スコアが小さくても
+   7段階のグリッドで見やすく表示する。
+*/
+function drawRadar() {
+  const canvas = document.getElementById('radarCanvas');
+  const ctx    = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const cx   = W / 2;
+  const cy   = H / 2 + 10;
+  const R    = Math.min(W, H) * 0.30;   // 半径（ラベル余白を十分取る）
+  const keys   = ['A','B','C','D','E'];
+  const labels = ['探究型','対話型','挑戦型','自己調整型','メタ認知型'];
+  const colors = keys.map(k => TYPES[k].color);
+  const maxVal = QUESTIONS.length;       // 7
+
+  // 5頂点の角度（真上から時計回り）
+  const angles = keys.map((_, i) => (Math.PI * 2 / 5) * i - Math.PI / 2);
+
+  function pt(r, a) { return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; }
+
+  // ── グリッド ──
+  const gridSteps = 7;
+  for (let lv = 1; lv <= gridSteps; lv++) {
+    ctx.beginPath();
+    angles.forEach((a, i) => {
+      const [x, y] = pt(R * lv / gridSteps, a);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+    ctx.strokeStyle = lv === gridSteps ? '#b0c8de' : '#d8e8f2';
+    ctx.lineWidth   = lv === gridSteps ? 1.5 : 0.8;
+    ctx.stroke();
+  }
+
+  // ── 軸線 ──
+  angles.forEach(a => {
+    const [x, y] = pt(R, a);
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(x, y);
+    ctx.strokeStyle = '#ccdde8'; ctx.lineWidth = 1; ctx.stroke();
+  });
+
+  // ── 目盛り数字（軸上に 1〜7） ──
+  ctx.fillStyle = '#aab8cc';
+  ctx.font      = '10px sans-serif';
+  ctx.textAlign = 'right';
+  for (let lv = 1; lv <= gridSteps; lv++) {
+    const [x, y] = pt(R * lv / gridSteps, -Math.PI / 2);
+    ctx.fillText(lv, x - 4, y + 4);
+  }
+
+  // ── データポリゴン ──
+  ctx.beginPath();
+  angles.forEach((a, i) => {
+    const s = scores[keys[i]] || 0;
+    const [x, y] = pt(R * s / maxVal, a);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.closePath();
+  ctx.fillStyle   = 'rgba(59,125,216,0.22)';
+  ctx.fill();
+  ctx.strokeStyle = '#3b7dd8';
+  ctx.lineWidth   = 2.5;
+  ctx.stroke();
+
+  // ── 頂点ドット ──
+  angles.forEach((a, i) => {
+    const s = scores[keys[i]] || 0;
+    const [x, y] = pt(R * s / maxVal, a);
+    ctx.beginPath();
+    ctx.arc(x, y, 5.5, 0, Math.PI * 2);
+    ctx.fillStyle   = colors[i];
+    ctx.fill();
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth   = 1.5;
+    ctx.stroke();
+  });
+
+  // ── タイプラベル ──
+  const labelR = R + 36;
+  angles.forEach((a, i) => {
+    const [lx, ly] = pt(labelR, a);
+    const s = scores[keys[i]] || 0;
+
+    // ラベル背景
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'center';
+    const tw = ctx.measureText(labels[i]).width + 16;
+    const th = 22;
+    ctx.beginPath();
+    if (ctx.roundRect) { ctx.roundRect(lx - tw/2, ly - th/2, tw, th, 11); }
+    else { ctx.rect(lx - tw/2, ly - th/2, tw, th); }
+    ctx.fillStyle = colors[i];
+    ctx.fill();
+
+    // ラベルテキスト
+    ctx.fillStyle = 'white';
+    ctx.fillText(labels[i], lx, ly + 4.5);
+
+    // スコア（ラベルの下）
+    const [dx, dy] = pt(R * s / maxVal, a);
+    ctx.font      = 'bold 11px sans-serif';
+    ctx.fillStyle = colors[i];
+    ctx.fillText(s + '点', dx, dy - 9);
+  });
+}
+
+/* ===== COPY ===== */
+function copyResult() {
+  const topKey = Object.entries(scores).sort((a,b) => b[1]-a[1])[0][0];
+  const t = TYPES[topKey];
+  let text = `【自立した学習者タイプ診断 結果】\n\nあなたのタイプ: ${t.icon} ${t.label}\n\n`;
+  text += `【せつめい】\n${t.desc}\n\n【強み】\n${t.strength}\n\n`;
+  text += `【夏休みのおすすめ学び方】\n`;
+  t.tips.forEach((tip, i) => { text += `${i+1}. ${tip}\n`; });
+  text += `\n【タイプ別とくてん】\n`;
+  Object.entries(TYPES).forEach(([k, tv]) => { text += `${tv.name}: ${scores[k]||0}点\n`; });
+  navigator.clipboard.writeText(text)
+    .then(() => showToast('📋 コピーしました！'))
+    .catch(() => showToast('コピーできませんでした'));
+}
+
+/* ===== PNG SAVE ===== */
+function saveImage() {
+  showToast('🖼 画像を作成中…');
+  html2canvas(document.getElementById('result-capture'), {
+    scale: 2, useCORS: true, backgroundColor: '#fdf9f2'
+  }).then(canvas => {
+    const a = document.createElement('a');
+    a.href     = canvas.toDataURL('image/png');
+    a.download = '学習者タイプ診断結果.png';
+    a.click();
+    showToast('✅ 保存しました！');
+  }).catch(() => showToast('保存できませんでした'));
+}
+
+function restartQuiz() { startQuiz(); }
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+/* ===== INIT ===== */
+showScreen('start');
+</script>
+</body>
+</html>
